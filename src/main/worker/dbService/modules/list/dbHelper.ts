@@ -19,13 +19,20 @@ import {
   createMusicInfoByMusicInfoIdQueryStatement,
 } from './statements'
 
-
+const idFixRxp = /\.0$/
 /**
  * 获取用户列表
  * @returns
  */
-export const queryAllUserList = (): LX.DBService.UserListInfo[] => {
-  return createListQueryStatement().all()
+export const queryAllUserList = () => {
+  const list = createListQueryStatement().all() as LX.DBService.UserListInfo[]
+  for (const info of list) {
+    // 兼容v2.3.0之前版本插入数字类型的ID导致其意外在末尾追加 .0 的问题
+    if (info.sourceListId?.endsWith?.('.0')) {
+      info.sourceListId = info.sourceListId.replace(idFixRxp, '')
+    }
+  }
+  return list
 }
 
 /**
@@ -154,9 +161,9 @@ export const updateMusicInfos = (list: LX.DBService.MusicInfo[]) => {
  * @param listId 列表Id
  * @returns 列表歌曲
  */
-export const queryMusicInfoByListId = (listId: string): LX.DBService.MusicInfo[] => {
+export const queryMusicInfoByListId = (listId: string) => {
   const musicInfoQueryStatement = createMusicInfoQueryStatement()
-  return musicInfoQueryStatement.all({ listId })
+  return musicInfoQueryStatement.all({ listId }) as LX.DBService.MusicInfo[]
 }
 
 /**
@@ -268,9 +275,9 @@ export const removeMusicInfoByListId = (ids: string[]) => {
  * @param musicInfoId 音乐id
  * @returns
  */
-export const queryMusicInfoByListIdAndMusicInfoId = (listId: string, musicInfoId: string): LX.DBService.MusicInfo | null => {
+export const queryMusicInfoByListIdAndMusicInfoId = (listId: string, musicInfoId: string) => {
   const musicInfoByListAndMusicInfoIdQueryStatement = createMusicInfoByListAndMusicInfoIdQueryStatement()
-  return musicInfoByListAndMusicInfoIdQueryStatement.get({ listId, musicInfoId })
+  return musicInfoByListAndMusicInfoIdQueryStatement.get({ listId, musicInfoId }) as LX.DBService.MusicInfo | null
 }
 
 /**
@@ -278,9 +285,9 @@ export const queryMusicInfoByListIdAndMusicInfoId = (listId: string, musicInfoId
  * @param id 音乐id
  * @returns
  */
-export const queryMusicInfoByMusicInfoId = (id: string): LX.DBService.MusicInfo[] => {
+export const queryMusicInfoByMusicInfoId = (id: string) => {
   const musicInfoByMusicInfoIdQueryStatement = createMusicInfoByMusicInfoIdQueryStatement()
-  return musicInfoByMusicInfoIdQueryStatement.all(id)
+  return musicInfoByMusicInfoIdQueryStatement.all(id) as LX.DBService.MusicInfo[]
 }
 
 /**

@@ -83,7 +83,7 @@ export default {
       required: true,
     },
   },
-  emits: ['updateLyric', 'update:modelValue'],
+  emits: ['updateLyric', 'update:model-value'],
   setup(props, { emit }) {
     // const appSetting = useRefGetter('appSetting')
     // const playDetailSetting = useRefGetter('playDetailSetting')
@@ -98,7 +98,7 @@ export default {
     const location = computed(() => props.xy)
 
     const onHide = () => {
-      emit('update:modelValue', false)
+      emit('update:model-value', false)
     }
 
     const setFontAlign = val => {
@@ -135,7 +135,7 @@ export default {
         rlyric &&= `[offset:${offset}]\n` + rlyric
       }
 
-      const musicInfo = 'progress' in props.lyricInfo.musicInfo ? props.lyricInfo.musicInfo.meta.musicInfo : props.lyricInfo.musicInfo
+      const musicInfo = 'progress' in props.lyricInfo.musicInfo ? props.lyricInfo.musicInfo.metadata.musicInfo : props.lyricInfo.musicInfo
 
       if (offset == originOffset.value) {
         removeLyric(musicInfo)
