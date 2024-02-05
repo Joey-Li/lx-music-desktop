@@ -20,7 +20,7 @@ dd
         div(:class="$style.bg")
           div(:class="$style.bgContent")
             svg-icon(:class="$style.icon" name="plus")
-        span(:class="$style.label") {{$t('theme_add')}}
+        span(:class="$style.label") {{ $t('theme_add') }}
 
 dd
   div
@@ -33,7 +33,7 @@ dd
     .gap-top
       base-checkbox(id="setting_to_tray" :model-value="appSetting['tray.enable']" :label="$t('setting__basic_to_tray')" @update:model-value="updateSetting({'tray.enable': $event})")
     .p.gap-top
-      base-btn.btn(min @click="isShowPlayTimeoutModal = true") {{$t('setting__play_timeout')}} {{ timeLabel ? ` (${timeLabel})` : '' }}
+      base-btn.btn(min @click="isShowPlayTimeoutModal = true") {{ $t('setting__play_timeout')}} {{ timeLabel ? ` (${timeLabel})` : '' }}
 
 dd
   h3#basic_source {{ $t('setting__basic_source') }}
@@ -41,21 +41,26 @@ dd
     .gap-top(v-for="item in apiSources" :key="item.id")
       base-checkbox(
         :id="`setting_api_source_${item.id}`" name="setting_api_source"
-        need :model-value="appSetting['common.apiSource']" :disabled="item.disabled" :value="item.id" :label="item.label" @update:model-value="updateSetting({'common.apiSource': $event})")
+        need :model-value="appSetting['common.apiSource']" :disabled="item.disabled" :value="item.id" :aria-label="item.label" @update:model-value="updateSetting({'common.apiSource': $event})")
+        span(:class="$style.sourceLabel")
+          | {{ item.name }}
+          span(v-if="item.desc" :class="$style.desc") {{ item.desc }}
+          span(v-if="item.statusLabel" :class="$style.status") {{ item.statusLabel }}
     .p.gap-top
-      base-btn.btn(min @click="isShowUserApiModal = true") {{$t('setting__basic_source_user_api_btn')}}
+      base-btn.btn(min @click="isShowUserApiModal = true") {{ $t('setting__basic_source_user_api_btn') }}
 
 dd
   h3#basic_window_size {{ $t('setting__basic_window_size') }}
   div
     base-checkbox.gap-left(
       v-for="item in windowSizeList" :id="`setting_window_size_${item.id}`" :key="item.id"
-      name="setting_window_size" need :model-value="appSetting['common.windowSizeId']" :disabled="isFullscreen" :value="item.id" :label="$t('setting__basic_window_size_' + item.name)" @update:model-value="updateSetting({'common.windowSizeId': $event})")
+      name="setting_window_size" need :model-value="appSetting['common.windowSizeId']" :disabled="isFullscreen" :value="item.id" :label="$t('setting__basic_window_size_' + item.name)"
+      @update:model-value="updateSetting({'common.windowSizeId': $event})")
 
 dd
   h3#basic_font_size {{ $t('setting__basic_font_size') }}
   div
-    //- base-selection.gap-teft(:list="fontSizeList" :modelValue="appSetting['common.fontSize']" @update:model-value="updateSetting({'common.fontSize': $event})")
+    //- base-selection.gap-teft(:list="fontSizeList" :model-value="appSetting['common.fontSize']" @update:model-value="updateSetting({'common.fontSize': $event})")
     base-checkbox.gap-left(
       v-for="item in fontSizeList" :id="`setting_basic_font_size_${item.id}`" :key="item.id"
       name="setting_basic_font_size" need :model-value="appSetting['common.fontSize']" :value="item.id"
@@ -70,32 +75,32 @@ dd
   h3#basic_lang {{ $t('setting__basic_lang') }}
   div
     base-checkbox.gap-left(
-v-for="item in langList" :id="`setting_lang_${item.locale}`" :key="item.locale" name="setting_lang"
+      v-for="item in langList" :id="`setting_lang_${item.locale}`" :key="item.locale" name="setting_lang"
       need :model-value="appSetting['common.langId']" :value="item.locale" :label="item.name" @update:model-value="updateSetting({'common.langId': $event})")
 
 dd
   h3#basic_sourcename {{ $t('setting__basic_sourcename') }}
   div
     base-checkbox.gap-left(
-v-for="item in sourceNameTypes" :id="`setting_abasic_sourcename_${item.id}`" :key="item.id"
+      v-for="item in sourceNameTypes" :id="`setting_abasic_sourcename_${item.id}`" :key="item.id"
       name="setting_basic_sourcename" need :model-value="appSetting['common.sourceNameType']" :value="item.id" :label="item.label" @update:model-value="updateSetting({'common.sourceNameType': $event})")
 dd
   h3#basic_control_btn_position {{ $t('setting__basic_control_btn_position') }}
   div
     base-checkbox.gap-left(
-v-for="item in controlBtnPositionList" :id="`setting_basic_control_btn_position_${item.id}`" :key="item.id"
+      v-for="item in controlBtnPositionList" :id="`setting_basic_control_btn_position_${item.id}`" :key="item.id"
       name="setting_basic_control_btn_position" need :model-value="appSetting['common.controlBtnPosition']" :value="item.id" :label="item.name" @update:model-value="updateSetting({'common.controlBtnPosition': $event})")
 dd
   h3#basic_playbar_progress_style {{ $t('setting__basic_playbar_progress_style') }}
   div
     base-checkbox.gap-left(
-id="setting_basic_playbar_progress_style_mini" name="setting_basic_playbar_progress_style"
+      id="setting_basic_playbar_progress_style_mini" name="setting_basic_playbar_progress_style"
       need :model-value="appSetting['common.playBarProgressStyle']" value="mini" :label="$t('setting__basic_playbar_progress_style_mini')" @update:model-value="updateSetting({'common.playBarProgressStyle': $event})")
     base-checkbox.gap-left(
-id="setting_basic_playbar_progress_style_middle" name="setting_basic_playbar_progress_style"
+      id="setting_basic_playbar_progress_style_middle" name="setting_basic_playbar_progress_style"
       need :model-value="appSetting['common.playBarProgressStyle']" value="middle" :label="$t('setting__basic_playbar_progress_style_middle')" @update:model-value="updateSetting({'common.playBarProgressStyle': $event})")
     base-checkbox.gap-left(
-id="setting_basic_playbar_progress_style_full" name="setting_basic_playbar_progress_style"
+      id="setting_basic_playbar_progress_style_full" name="setting_basic_playbar_progress_style"
       need :model-value="appSetting['common.playBarProgressStyle']" value="full" :label="$t('setting__basic_playbar_progress_style_full')" @update:model-value="updateSetting({'common.playBarProgressStyle': $event})")
 
 ThemeSelectorModal(v-model="isShowThemeSelectorModal")
@@ -107,16 +112,16 @@ user-api-modal(v-model="isShowUserApiModal")
 <script>
 import { computed, ref, watch, reactive, shallowReactive } from '@common/utils/vueTools'
 import { windowSizeList, userApi, isFullscreen, themeId } from '@renderer/store'
-import { langList, useI18n } from '@/lang'
+import { langList, useI18n } from '@root/lang'
 import { getSystemFonts } from '@renderer/utils/ipc'
 import apiSourceInfo from '@renderer/utils/musicSdk/api-source-info'
 import { useTimeout } from '@renderer/core/player/timeoutStop'
 import { dialog } from '@renderer/plugins/Dialog'
 
-import ThemeSelectorModal from './ThemeSelectorModal'
-import ThemeEditModal from './ThemeEditModal'
-import PlayTimeoutModal from './PlayTimeoutModal'
-import UserApiModal from './UserApiModal'
+import ThemeSelectorModal from './ThemeSelectorModal.vue'
+import ThemeEditModal from './ThemeEditModal/index.vue'
+import PlayTimeoutModal from './PlayTimeoutModal.vue'
+import UserApiModal from './UserApiModal.vue'
 import { appSetting, updateSetting } from '@renderer/store/setting'
 import { getThemes, applyTheme, findTheme, buildBgUrl } from '@renderer/store/utils'
 
@@ -186,7 +191,7 @@ export default {
     const handleEditTheme = (theme) => {
       // console.log(theme)
       if (!theme && userThemes.length >= 10) {
-        dialog({
+        void dialog({
           message: t('theme_max_tip'),
           confirmButtonText: t('alert_button_text'),
         })
@@ -214,7 +219,7 @@ export default {
       if (themeId.value == 'auto') return
       if (window.localStorage.getItem('theme-auto-tip') != 'true') {
         window.localStorage.setItem('theme-auto-tip', 'true')
-        dialog({
+        void dialog({
           message: t('setting__basic_theme_auto_tip'),
           confirmButtonText: t('ok'),
         })
@@ -231,7 +236,7 @@ export default {
       let status
       if (userApi.status) status = t('setting__basic_source_status_success')
       else if (userApi.message == 'initing') status = t('setting__basic_source_status_initing')
-      else status = `${t('setting__basic_source_status_failed')} - ${userApi.message}`
+      else status = `${t('setting__basic_source_status_failed')}`
 
       return status
     }
@@ -239,12 +244,16 @@ export default {
       return [
         ...apiSourceInfo.map(api => ({
           id: api.id,
-          label: t('setting__basic_source_' + api.id) || api.name,
+          name: api.name,
+          label: api.name,
           disabled: api.disabled,
         })),
         ...userApi.list.map(api => ({
           id: api.id,
-          label: `${api.name}${api.description ? `（${api.description}）` : ''}${api.id == appSetting['common.apiSource'] ? `[${getApiStatus()}]` : ''}`,
+          name: api.name,
+          label: `${api.name}${api.id == appSetting['common.apiSource'] ? `[${getApiStatus()}]` : ''}`,
+          desc: [/^\d/.test(api.version) ? `v${api.version}` : api.version].filter(Boolean).join(', '),
+          statusLabel: api.id == appSetting['common.apiSource'] ? `[${getApiStatus()}]` : '',
           status: api.status,
           message: api.message,
           disabled: false,
@@ -271,7 +280,7 @@ export default {
     const fontList = computed(() => {
       return [{ id: '', label: t('setting__desktop_lyric_font_default') }, ...systemFontList.value]
     })
-    getSystemFonts().then(fonts => {
+    void getSystemFonts().then(fonts => {
       systemFontList.value = fonts.map(f => ({ id: f, label: f.replace(/(^"|"$)/g, '') }))
     })
 
@@ -482,6 +491,23 @@ export default {
         color: var(--color-primary-dark-100-alpha-300);
       }
     }
+  }
+}
+
+.sourceLabel {
+  flex: auto;
+  margin-left: 5px;
+  line-height: 1.5;
+  cursor: pointer;
+
+  .desc {
+    color: var(--color-500);
+    font-size: 12px;
+    margin-left: 5px;
+  }
+
+  .status {
+    margin-left: 5px;
   }
 }
 

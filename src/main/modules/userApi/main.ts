@@ -1,9 +1,11 @@
 import { mainSend } from '@common/mainIpc'
 import { BrowserWindow } from 'electron'
 import fs from 'fs'
-import { join } from 'path'
+import path from 'node:path'
 import { openDevTools as handleOpenDevTools } from '@main/utils'
 import { encodePath } from '@common/utils/electron'
+import USER_API_RENDERER_EVENT_NAME from './rendererEvent/name'
+import { getScript } from './utils'
 
 let browserWindow: Electron.BrowserWindow | null = null
 
@@ -27,14 +29,15 @@ const winEvent = () => {
 
 export const createWindow = async(userApi: LX.UserApi.UserApiInfo) => {
   await closeWindow()
-  dir ??= global.isDev ? webpackUserApiPath : join(encodePath(__dirname), 'userApi')
+  dir ??= process.env.NODE_ENV !== 'production' ? webpackUserApiPath : path.join(encodePath(__dirname), 'userApi')
 
   if (!html) {
-    html = await fs.promises.readFile(join(dir, 'renderer/user-api.html'), 'utf8')
+    // eslint-disable-next-line require-atomic-updates
+    html = await fs.promises.readFile(path.join(dir, 'renderer/user-api.html'), 'utf8')
   }
-  const preloadUrl = global.isDev
-    ? `${join(encodePath(__dirname), '../dist/user-api-preload.js')}`
-    : `${join(encodePath(__dirname), 'user-api-preload.js')}`
+  const preloadUrl = process.env.NODE_ENV !== 'production'
+    ? `${path.join(encodePath(__dirname), '../dist/user-api-preload.js')}`
+    : `${path.join(encodePath(__dirname), 'user-api-preload.js')}`
   // console.log(preloadUrl)
 
   /**
@@ -86,12 +89,12 @@ export const createWindow = async(userApi: LX.UserApi.UserApiInfo) => {
   winEvent()
 
   // console.log(html.replace('</body>', `<script>${userApi.script}</script></body>`))
-  const randomNum = Math.random().toString().substring(2, 10)
-  await browserWindow.loadURL(
-    'data:text/html;charset=UTF-8,' + encodeURIComponent(html
-      .replace('<meta http-equiv="Content-Security-Policy" content="default-src \'none\'">',
-        `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${randomNum}';">`)
-      .replace('</body>', `<script nonce="${randomNum}">${userApi.script}</script></body>`)))
+  // const randomNum = Math.random().toString().substring(2, 10)
+  await browserWindow.loadURL('data:text/html;charset=UTF-8,' + encodeURIComponent(html))
+
+  browserWindow.on('ready-to-show', async() => {
+    sendEvent(USER_API_RENDERER_EVENT_NAME.initEnv, { ...userApi, script: await getScript(userApi.id) })
+  })
 
   // global.modules.userApiWindow.loadFile(join(dir, 'renderer/user-api.html'))
   // global.modules.userApiWindow.webContents.openDevTools()
@@ -104,7 +107,7 @@ export const closeWindow = async() => {
     browserWindow.webContents.session.clearStorageData(),
     browserWindow.webContents.session.clearCache(),
   ])
-  browserWindow.destroy()
+  browserWindow?.destroy()
   browserWindow = null
 }
 

@@ -12,7 +12,7 @@ dd(:aria-label="$t('setting__download_path_title')")
       | {{ $t('setting__download_path_label') }}
       span.auto-hidden.hover(:class="$style.savePath" :aria-label="$t('setting__download_path_open_label')" @click="openDirInExplorer(appSetting['download.savePath'])") {{ appSetting['download.savePath'] }}
     .p
-      base-btn.btn(min @click="handleChangeSavePath") {{$t('setting__download_path_change_btn')}}
+      base-btn.btn(min @click="handleChangeSavePath") {{ $t('setting__download_path_change_btn') }}
 dd
   h3#download_use_other_source
     | {{ $t('setting__download_use_other_source') }}
@@ -24,7 +24,7 @@ dd(:aria-label="$t('setting__download_name_title')")
   h3#download_name {{ $t('setting__download_name') }}
   div
     base-checkbox.gap-left(
-v-for="item in musicNames" :id="`setting_download_musicName_${item.value}`" :key="item.value" name="setting_download_musicName" :value="item.value"
+        v-for="item in musicNames" :id="`setting_download_musicName_${item.value}`" :key="item.value" name="setting_download_musicName" :value="item.value"
         need :model-value="appSetting['download.fileName']" :label="item.name" @update:model-value="updateSetting({'download.fileName': $event})")
 dd
   h3#download_data_embed {{ $t('setting__download_data_embed') }}
@@ -56,8 +56,7 @@ dd
 <script>
 import { computed } from '@common/utils/vueTools'
 // import { getSystemFonts } from '@renderer/utils/tools'
-import { openDirInExplorer } from '@common/utils/electron'
-import { showSelectDialog } from '@renderer/utils/ipc'
+import { showSelectDialog, openDirInExplorer } from '@renderer/utils/ipc'
 import { useI18n } from '@renderer/plugins/i18n'
 import { appSetting, updateSetting } from '@renderer/store/setting'
 
@@ -67,7 +66,7 @@ export default {
     const t = useI18n()
 
     const handleChangeSavePath = () => {
-      showSelectDialog({
+      void showSelectDialog({
         title: t('setting__download_select_save_path'),
         defaultPath: appSetting['download.savePath'],
         properties: ['openDirectory'],
@@ -105,7 +104,7 @@ export default {
 </script>
 
 <style lang="less" module>
-.save-path {
-  font-size: 12px;
-}
+// .savePath {
+//   font-size: 12px;
+// }
 </style>

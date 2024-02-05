@@ -4,7 +4,11 @@ dd
   .gap-top
     base-checkbox(id="setting_player_startup_auto_play" :model-value="appSetting['player.startupAutoPlay']" :label="$t('setting__play_startup_auto_play')" @update:model-value="updateSetting({'player.startupAutoPlay': $event})")
   .gap-top
+    base-checkbox(id="setting_player_power_save_blocker" :model-value="appSetting['player.powerSaveBlocker']" :label="$t('setting__play_power_save_blocker')" @update:model-value="handleUpdatePowerSaveBlocker")
+  .gap-top
     base-checkbox(id="setting_player_save_play_time" :model-value="appSetting['player.isSavePlayTime']" :label="$t('setting__play_save_play_time')" @update:model-value="updateSetting({'player.isSavePlayTime': $event})")
+  .gap-top
+    base-checkbox(id="setting_player_auto_clean_played_list" :model-value="appSetting['player.isAutoCleanPlayedList']" :label="$t('setting__play_auto_clean_played_list')" @update:model-value="updateSetting({'player.isAutoCleanPlayedList': $event})")
   .gap-top
     base-checkbox(id="setting_player_lyric_transition" :model-value="appSetting['player.isShowLyricTranslation']" :label="$t('setting__play_lyric_transition')" @update:model-value="updateSetting({'player.isShowLyricTranslation': $event})")
   .gap-top
@@ -33,6 +37,8 @@ import { hasInitedAdvancedAudioFeatures } from '@renderer/plugins/player'
 import { dialog } from '@renderer/plugins/Dialog'
 import { useI18n } from '@renderer/plugins/i18n'
 import { appSetting, updateSetting } from '@renderer/store/setting'
+import { setPowerSaveBlocker } from '@renderer/core/player/utils'
+import { isPlay } from '@renderer/store/player/state'
 
 
 export default {
@@ -47,7 +53,7 @@ export default {
       mediaDevices.value = audioDevices
       // console.log(this.mediaDevices)
     }
-    getMediaDevice()
+    void getMediaDevice()
 
     navigator.mediaDevices.addEventListener('devicechange', getMediaDevice)
     onBeforeUnmount(() => {
@@ -82,6 +88,15 @@ export default {
       mediaDeviceId.value = val
     })
 
+    const handleUpdatePowerSaveBlocker = (enabled) => {
+      if (enabled) {
+        if (isPlay.value) setPowerSaveBlocker(true, true)
+      } else {
+        setPowerSaveBlocker(false, true)
+      }
+      updateSetting({ 'player.powerSaveBlocker': enabled })
+    }
+
 
     return {
       appSetting,
@@ -89,6 +104,7 @@ export default {
       mediaDevices,
       mediaDeviceId,
       handleMediaDeviceIdChnage,
+      handleUpdatePowerSaveBlocker,
     }
   },
 }

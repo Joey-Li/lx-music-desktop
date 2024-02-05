@@ -6,8 +6,11 @@ module.exports = {
     'del',
     'comlink',
     'vue',
-    'eslint-plugin-n',
+    'image-size',
+    'message2call',
     '@types/ws',
+    // 'eslint-config-standard-with-typescript',
+    // 'typescript', // https://github.com/microsoft/TypeScript/pull/54567
   ],
 
   // target: 'newest',
@@ -23,7 +26,6 @@ module.exports = {
 
   // target: 'minor',
   // filter: [
-  //   'eslint-plugin-n',
   //   'electron',
   // ],
 }

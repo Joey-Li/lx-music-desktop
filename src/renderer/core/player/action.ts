@@ -17,6 +17,9 @@ import { getMusicUrl, getPicPath, getLyricInfo } from '../music/index'
 import { filterList } from './utils'
 import { requestMsg } from '@renderer/utils/message'
 import { getRandom } from '@renderer/utils/index'
+import { addListMusics, removeListMusics } from '@renderer/store/list/action'
+import { loveList } from '@renderer/store/list/state'
+import { addDislikeInfo } from '@renderer/core/dislikeList'
 // import { checkMusicFileAvailable } from '@renderer/utils/music'
 
 let gettingUrlId = ''
@@ -147,7 +150,7 @@ const handleRestorePlay = async(restorePlayInfo: LX.Player.SavedPlayInfo) => {
     if (musicInfo.id != playMusicInfo.musicInfo?.id) return
     setMusicInfo({ pic: url })
     window.app_event.picUpdated()
-  })
+  }).catch(_ => _)
 
   void getLyricInfo({ musicInfo }).then((lyricInfo) => {
     if (musicInfo.id != playMusicInfo.musicInfo?.id) return
@@ -197,7 +200,7 @@ const handlePlay = () => {
     if (musicInfo.id != playMusicInfo.musicInfo?.id) return
     setMusicInfo({ pic: url })
     window.app_event.picUpdated()
-  })
+  }).catch(_ => _)
 
   void getLyricInfo({ musicInfo }).then((lyricInfo) => {
     if (musicInfo.id != playMusicInfo.musicInfo?.id) return
@@ -222,10 +225,11 @@ const handlePlay = () => {
  * @param index 播放的歌曲位置
  */
 export const playList = (listId: string, index: number) => {
+  const prevListId = playInfo.playerListId
   setPlayListId(listId)
   pause()
   setPlayMusicInfo(listId, getList(listId)[index])
-  clearPlayedList()
+  if (appSetting['player.isAutoCleanPlayedList'] || prevListId != listId) clearPlayedList()
   clearTempPlayeList()
   handlePlay()
 }
@@ -299,6 +303,7 @@ export const playNext = async(isAutoToggle = false): Promise<void> => {
     list: currentList,
     playedList,
     playerMusicInfo: currentList[playInfo.playerPlayIndex],
+    isNext: true,
   })
 
   if (!filteredList.length) {
@@ -398,6 +403,7 @@ export const playPrev = async(isAutoToggle = false): Promise<void> => {
     list: currentList,
     playedList,
     playerMusicInfo: currentList[playInfo.playerPlayIndex],
+    isNext: false,
   })
   if (!filteredList.length) {
     handleToggleStop()
@@ -484,4 +490,30 @@ export const togglePlay = () => {
   } else {
     play()
   }
+}
+
+/**
+ * 收藏当前播放的歌曲
+ */
+export const collectMusic = () => {
+  if (!playMusicInfo.musicInfo) return
+  void addListMusics(loveList.id, ['progress' in playMusicInfo.musicInfo ? playMusicInfo.musicInfo.metadata.musicInfo : playMusicInfo.musicInfo])
+}
+
+/**
+ * 取消收藏当前播放的歌曲
+ */
+export const uncollectMusic = () => {
+  if (!playMusicInfo.musicInfo) return
+  void removeListMusics({ listId: loveList.id, ids: ['progress' in playMusicInfo.musicInfo ? playMusicInfo.musicInfo.metadata.musicInfo.id : playMusicInfo.musicInfo.id] })
+}
+
+/**
+ * 不喜欢当前播放的歌曲
+ */
+export const dislikeMusic = async() => {
+  if (!playMusicInfo.musicInfo) return
+  const minfo = 'progress' in playMusicInfo.musicInfo ? playMusicInfo.musicInfo.metadata.musicInfo : playMusicInfo.musicInfo
+  await addDislikeInfo([{ name: minfo.name, singer: minfo.singer }])
+  await playNext(true)
 }

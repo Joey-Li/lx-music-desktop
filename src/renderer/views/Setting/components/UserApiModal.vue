@@ -5,7 +5,10 @@ material-modal(:show="modelValue" bg-close teleport="#view" @close="handleClose"
     ul.scroll(v-if="apiList.length" :class="$style.content")
       li(v-for="(api, index) in apiList" :key="api.id" :class="[$style.listItem, {[$style.active]: appSetting['common.apiSource'] == api.id}]")
         div(:class="$style.listLeft")
-          h3 {{ api.name }}
+          h3
+            | {{ api.name }}
+            span(v-if="api.version") {{ /^\d/.test(api.version) ? `v${api.version}` : api.version }}
+            span(v-if="api.author") {{ api.author }}
           p {{ api.description }}
           div
             base-checkbox(:id="`user_api_${api.id}`" v-model="api.allowShowUpdateAlert" :class="$style.checkbox" :label="$t('user_api__allow_show_update_alert')" @change="handleChangeAllowUpdateAlert(api, $event)")
@@ -21,7 +24,7 @@ material-modal(:show="modelValue" bg-close teleport="#view" @close="handleClose"
       p {{ $t('user_api__note') }}
     div(:class="$style.footer")
       base-btn(:class="$style.footerBtn" @click="handleImport") {{ $t('user_api__btn_import') }}
-      //- base-btn(:class="$style.footerBtn" @click="handleExport") {{$t('user_api__btn_export')}}
+      //- base-btn(:class="$style.footerBtn" @click="handleExport") {{ $t('user_api__btn_export') }}
 </template>
 
 <script>
@@ -39,7 +42,7 @@ export default {
       default: false,
     },
   },
-  emits: ['update:model-value'],
+  emits: ['update:modelValue'],
   setup() {
     return {
       userApi,
@@ -60,16 +63,16 @@ export default {
         })
         return
       }
-      showSelectDialog({
+      void showSelectDialog({
         title: this.$t('user_api__import_file'),
         properties: ['openFile'],
         filters: [
           { name: 'LX API File', extensions: ['js'] },
           { name: 'All Files', extensions: ['*'] },
         ],
-      }).then(result => {
+      }).then(async result => {
         if (result.canceled) return
-        return readFile(result.filePaths[0]).then(data => {
+        return readFile(result.filePaths[0]).then(async data => {
           return importUserApi(data.toString()).then(({ apiList }) => {
             userApi.list = apiList
           })
@@ -84,18 +87,19 @@ export default {
       if (!api) return
       if (appSetting['common.apiSource'] == api.id) {
         let backApi = apiSourceInfo.find(api => !api.disabled)
-        if (backApi) updateSetting({ 'common.apiSource': backApi.id })
+        if (!backApi) backApi = userApi.list[0]
+        updateSetting({ 'common.apiSource': backApi?.id ?? '' })
       }
       userApi.list = await removeUserApi([api.id])
     },
     handleClose() {
-      this.$emit('update:model-value', false)
+      this.$emit('update:modelValue', false)
     },
     handleOpenUrl(url) {
-      openUrl(url)
+      void openUrl(url)
     },
     handleChangeAllowUpdateAlert(api, enable) {
-      setAllowShowUserApiUpdateAlert(api.id, enable)
+      void setAllowShowUserApiUpdateAlert(api.id, enable)
     },
   },
 }
@@ -144,7 +148,7 @@ export default {
   flex-flow: row nowrap;
   align-items: center;
   transition: background-color 0.2s ease;
-  padding: 10px;
+  padding: 15px 10px;
   border-radius: @radius-border;
   &:hover {
     background-color: var(--color-primary-background-hover);
@@ -156,6 +160,11 @@ export default {
     font-size: 15px;
     color: var(--color-font);
     word-break: break-all;
+    span {
+      font-size: 12px;
+      color: var(--color-font-label);
+      margin-left: 6px;
+    }
   }
   p {
     margin-top: 5px;

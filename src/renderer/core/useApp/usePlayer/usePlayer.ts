@@ -3,7 +3,7 @@ import { useI18n } from '@renderer/plugins/i18n'
 import { setTitle } from '@renderer/utils'
 
 import {
-  setLoopPlay, setPause, setStop,
+  setPause, setStop,
 } from '@renderer/plugins/player'
 
 import useMediaSessionInfo from './useMediaSessionInfo'
@@ -29,9 +29,10 @@ import useLyric from './useLyric'
 import useVolume from './useVolume'
 import useWatchList from './useWatchList'
 import { HOTKEY_PLAYER } from '@common/hotKey'
-import { playNext, pause, playPrev, togglePlay } from '@renderer/core/player'
+import { playNext, pause, playPrev, togglePlay, collectMusic, uncollectMusic, dislikeMusic } from '@renderer/core/player'
 import usePlaybackRate from './usePlaybackRate'
 import useSoundEffect from './useSoundEffect'
+import { setPowerSaveBlocker } from '@renderer/core/player/utils'
 
 
 export default () => {
@@ -53,12 +54,20 @@ export default () => {
     void playPrev()
   }
 
+  const addPowerSaveBlocker = () => {
+    setPowerSaveBlocker(true)
+  }
+  const removePowerSaveBlocker = () => {
+    setPowerSaveBlocker(false)
+  }
+
   const setPlayStatus = () => {
     setPlay(true)
   }
   const setPauseStatus = () => {
     setPlay(false)
     if (window.lx.isPlayedStop) pause()
+    removePowerSaveBlocker()
   }
 
   const handleUpdatePlayInfo = () => {
@@ -88,20 +97,24 @@ export default () => {
     setTitle(null)
     setAllStatus('')
     setStop()
+    removePowerSaveBlocker()
   }
 
   watch(() => appSetting['player.togglePlayMethod'], newValue => {
-    setLoopPlay(newValue == 'singleLoop')
+    // setLoopPlay(newValue == 'singleLoop')
     if (playedList.length) clearPlayedList()
     if (newValue == 'random' && playMusicInfo.musicInfo && !playMusicInfo.isTempPlay) addPlayedList({ ...(playMusicInfo as LX.Player.PlayMusicInfo) })
   })
 
-  setLoopPlay(appSetting['player.togglePlayMethod'] == 'singleLoop')
+  // setLoopPlay(appSetting['player.togglePlayMethod'] == 'singleLoop')
 
 
   window.key_event.on(HOTKEY_PLAYER.next.action, handlePlayNext)
   window.key_event.on(HOTKEY_PLAYER.prev.action, handlePlayPrev)
   window.key_event.on(HOTKEY_PLAYER.toggle_play.action, togglePlay)
+  window.key_event.on(HOTKEY_PLAYER.music_love.action, collectMusic)
+  window.key_event.on(HOTKEY_PLAYER.music_unlove.action, uncollectMusic)
+  window.key_event.on(HOTKEY_PLAYER.music_dislike.action, dislikeMusic)
 
   window.app_event.on('play', setPlayStatus)
   window.app_event.on('pause', setPauseStatus)
@@ -109,6 +122,8 @@ export default () => {
   window.app_event.on('stop', setStopStatus)
   window.app_event.on('musicToggled', handleUpdatePlayInfo)
   window.app_event.on('playerCanplay', handleCanplay)
+  window.app_event.on('playerPlaying', addPowerSaveBlocker)
+  window.app_event.on('playerEmptied', removePowerSaveBlocker)
 
   window.app_event.on('playerEnded', handleEnded)
 
@@ -119,13 +134,19 @@ export default () => {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     window.key_event.off(HOTKEY_PLAYER.prev.action, handlePlayPrev)
     window.key_event.off(HOTKEY_PLAYER.toggle_play.action, togglePlay)
+    window.key_event.off(HOTKEY_PLAYER.music_love.action, collectMusic)
+    window.key_event.off(HOTKEY_PLAYER.music_unlove.action, uncollectMusic)
+    window.key_event.off(HOTKEY_PLAYER.music_dislike.action, dislikeMusic)
+
 
     window.app_event.off('play', setPlayStatus)
     window.app_event.off('pause', setPauseStatus)
     window.app_event.off('error', setPauseStatus)
     window.app_event.off('stop', setStopStatus)
     window.app_event.off('musicToggled', handleUpdatePlayInfo)
-    window.app_event.on('playerCanplay', handleCanplay)
+    window.app_event.off('playerPlaying', addPowerSaveBlocker)
+    window.app_event.off('playerEmptied', removePowerSaveBlocker)
+    window.app_event.off('playerCanplay', handleCanplay)
 
     window.app_event.off('playerEnded', handleEnded)
   })
